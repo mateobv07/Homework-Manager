@@ -213,10 +213,10 @@
         </v-card>
         <v-dialog v-model="new_tarea" max-width="600">
           <v-card color="grey lighten-4">
-            <v-toolbar color="blue-grey darken-2" dark >
-              <v-toolbar-title > Nueva Tarea</v-toolbar-title>
+            <v-toolbar color="blue-grey darken-2" dark>
+              <v-toolbar-title> Nueva Tarea</v-toolbar-title>
               <v-spacer></v-spacer>
-              <v-btn icon >
+              <v-btn icon>
                 <v-icon @click="new_tarea = false">mdi-close</v-icon>
               </v-btn>
             </v-toolbar>
@@ -259,7 +259,6 @@
               ></v-textarea>
             </v-col>
             <v-card-actions class="justify-center mt-n5 pb-4">
-              
               <v-btn color="success" @click="update_tarea()"> Agregar </v-btn>
             </v-card-actions>
           </v-card>
@@ -285,7 +284,7 @@ export default {
     selectedEvent: {},
     selectedElement: null,
     selectedOpen: false,
-    new_tarea: false, 
+    new_tarea: false,
     tarea_name: "",
     tarea_date: null,
     tarea_dateFormatted: "",
@@ -296,12 +295,13 @@ export default {
     events: [],
     colors: ["blue", "indigo", "deep-purple", "cyan", "green", "orange"],
     names: [
-      ["Meeting", "August 17, 2021", "helooo"],
+      ["Meeting", "August 18, 2021", "helooo"],
       ["Holiday", "August 19, 2021", "helooo"],
       ["PTO", "August 27, 2021", "helooo"],
-      ["Travel", "August 17, 2021", "helooo"],
-      ["Event", "August 17, 2021", "helooo"],
-      ["Birthday", "August 25, 2021", "helooo"],
+      ["Travel", "August 11, 2021", "helooo"],
+      ["Event", "August 5, 2021", "helooo"],
+      ["Birthday", "August 29, 2021", "helooo"],
+      ["Birthday", "May 29, 2021", "helooo"],
     ],
   }),
   computed: {
@@ -372,8 +372,14 @@ export default {
       nativeEvent.stopPropagation();
     },
     updateRange({ start, end }) {
+      //sort by date
       const events = [];
-
+      var lol = this.names.sort(function (a, b) {
+        var dateA = new Date(a[1]),
+          dateB = new Date(b[1]);
+        return dateA - dateB;
+      });
+      this.names = lol;
       const eventCount = this.names.length;
 
       for (let i = 0; i < eventCount; i++) {
@@ -381,8 +387,7 @@ export default {
         const dia_entrega = new Date(
           firstTimestamp - (firstTimestamp % 900000)
         );
-        console.log("first");
-        console.log(firstTimestamp);
+
         events.push({
           name: this.names[i][0],
           start: dia_entrega,
