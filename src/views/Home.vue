@@ -40,7 +40,7 @@
             </v-menu>
           </v-toolbar>
         </v-sheet>
-        <v-sheet height="600" width="57%" class="ml-12">
+        <v-sheet height="600" width="57%" class="ml-12" >
           <v-calendar
             ref="calendar"
             v-model="focus"
@@ -82,7 +82,8 @@
           </v-menu>
         </v-sheet>
          <v-card
-    class="mx-auto rounded-t-lg"
+         elevation="4"
+    class="mx-auto rounded-lg"
     width="34%" 
   >
 
