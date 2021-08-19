@@ -119,7 +119,7 @@
                   @click="(selectedEvent = item), (selectedOpen_tarea = true)"
                 >
                   <v-list-item-avatar>
-                    <v-avatar :color="item.color" size="56" class="white--text">
+                    <v-avatar :color="item.color" size="56" class="white--text pr-4"> {{events.indexOf(item) + 1}}
                     </v-avatar>
                   </v-list-item-avatar>
 
