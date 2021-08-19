@@ -4,14 +4,14 @@
       <div class="d-flex align-center">
         
 
-        <h1 class="text-h4">Homework Tec</h1>
+        <h1 :class="$vuetify.breakpoint.smAndDown ? 'text-h5' : 'text-h4'">Homework Tec</h1>
       </div>
 
       <v-spacer></v-spacer>
 
       <v-img
           alt="Vuetify Logo"
-          class="shrink mr-2"
+          class="shrink mr-3"
           contain
           src="../src/assets/tec.png"
           transition="scale-transition"

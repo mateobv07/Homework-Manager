@@ -2,11 +2,11 @@
   <v-row class="fill-height">
     <v-col>
       <v-row>
-        <v-sheet height="64" width="57%" class="ml-12 mt-10 .rounded-lg">
+        <v-sheet height="64" :width="$vuetify.breakpoint.smAndDown ? '100%' : '57%'"  :class="$vuetify.breakpoint.smAndDown ? 'mt-6 mx-4 pr-9': 'ml-12 mt-10 .rounded-lg'">
           <v-toolbar color="cyan lighten-4" flat class="rounded-t-lg">
             <v-btn
               outlined
-              class="mr-4"
+              :class="$vuetify.breakpoint.smAndDown ? 'mx-auto' :' mr-4'"
               color="grey darken-2"
               @click="setToday"
             >
@@ -40,7 +40,7 @@
             </v-menu>
           </v-toolbar>
         </v-sheet>
-        <v-sheet height="600" width="57%" class="ml-12" >
+        <v-sheet :height="$vuetify.breakpoint.smAndDown ? '550' : '600'" :width="$vuetify.breakpoint.smAndDown ? '100%' : '57%'" :class="$vuetify.breakpoint.smAndDown ? 'mx-5' : 'ml-12'">
           <v-calendar
             ref="calendar"
             v-model="focus"
@@ -49,10 +49,11 @@
             :event-color="getEventColor"
             :type="type"
             @click:event="showEvent"
-            @click:more="viewDay"
+           :event-more="false"
             @click:date="viewDay"
             @change="updateRange"
           ></v-calendar>
+
           <v-menu
             v-model="selectedOpen"
             :close-on-content-click="false"
@@ -62,7 +63,10 @@
             <v-card color="grey lighten-4" min-width="350px">
               <v-toolbar :color="selectedEvent.color" dark>
                 <v-btn icon>
-                  <v-icon>mdi-pencil</v-icon>
+                  <v-icon
+                    @click="(selectedOpen_tarea = true), (selectedOpen = false)"
+                    >mdi-pencil</v-icon
+                  >
                 </v-btn>
                 <v-toolbar-title v-html="selectedEvent.name"></v-toolbar-title>
                 <v-spacer></v-spacer>
@@ -81,71 +85,82 @@
             </v-card>
           </v-menu>
         </v-sheet>
-         <v-card
-         elevation="4"
-    class="mx-auto rounded-lg"
-    width="34%" 
-  >
 
-    <v-card-title class="blue lighten-4 justify-center">
-     <span class="text-h3 text-center"> Tareas </span>
-      <v-btn
-        absolute
-        right
-        top
-        color="white"
-        class="text--primary mt-10"
-        fab
-        
-
-      >
-        <v-icon>mdi-plus</v-icon>
-      </v-btn>
-     </v-card-title>
-
-
-    <v-divider></v-divider>
-
-    <v-virtual-scroll
-      :items="items"
-      :item-height="50"
-      height="400"
-    >
-      <template v-slot:default="{ item }">
-        <v-list-item>
-          <v-list-item-avatar>
-            <v-avatar
-              :color="item.color"
-              size="56"
-              class="white--text"
-            >
-              {{ item.initials }}
-            </v-avatar>
-          </v-list-item-avatar>
-
-          <v-list-item-content>
-            <v-list-item-title>{{ item.fullName }}</v-list-item-title>
-          </v-list-item-content>
-
-          <v-list-item-action>
+        <v-card
+          elevation="4"
+          :class="$vuetify.breakpoint.smAndDown ? 'mx-auto rounded-lg justify-center mt-5' : 'mx-auto rounded-lg justify-center'"
+          :width="$vuetify.breakpoint.smAndDown ? '90%' : '34%'" 
+        >
+          <v-card-title class="blue lighten-4 justify-center">
+            <span class="text-h3 text-center"> Tareas </span>
             <v-btn
-              depressed
-              small
+              absolute
+              right
+              top
+              color="white"
+              class="text--primary mt-10"
+              fab
             >
-              View User
-
-              <v-icon
-                color="orange darken-4"
-                right
-              >
-                mdi-open-in-new
-              </v-icon>
+              <v-icon>mdi-plus</v-icon>
             </v-btn>
-          </v-list-item-action>
-        </v-list-item>
-      </template>
-    </v-virtual-scroll>
-  </v-card>
+          </v-card-title>
+
+          <v-divider></v-divider>
+          <v-card-actions>
+            <v-virtual-scroll
+              :items="events"
+              :item-height="50"
+              height="450"
+              max-width="550"
+              class="mx-auto"
+            >
+              <template v-slot:default="{ item }">
+                <v-list-item
+                  @click="(selectedEvent = item), (selectedOpen_tarea = true)"
+                >
+                  <v-list-item-avatar>
+                    <v-avatar :color="item.color" size="56" class="white--text">
+                    </v-avatar>
+                  </v-list-item-avatar>
+
+                  <v-list-item-content>
+                    <v-list-item-title>{{ item.name }}</v-list-item-title>
+                  </v-list-item-content>
+
+                  <v-btn depressed small>
+                    {{ item.start.toString().substring(0, 15) }}
+                  </v-btn>
+                </v-list-item>
+              </template>
+            </v-virtual-scroll>
+          </v-card-actions>
+          <v-dialog v-model="selectedOpen_tarea" width="600">
+            <v-card color="grey lighten-4" min-width="350px">
+              <v-toolbar :color="selectedEvent.color" dark>
+                <v-btn icon>
+                  <v-icon>mdi-pencil</v-icon>
+                </v-btn>
+                <v-toolbar-title> {{ selectedEvent.name }}</v-toolbar-title>
+                <v-spacer></v-spacer>
+                <v-btn icon>
+                  <v-icon>mdi-dots-vertical</v-icon>
+                </v-btn>
+              </v-toolbar>
+              <v-card-text>
+                <p class="mt-5">{{ selectedEvent.details }}</p>
+              </v-card-text>
+              <v-card-actions>
+                <v-btn
+                  text
+                  color="secondary"
+                  @click="selectedOpen_tarea = false"
+                >
+                  Cancel
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-card>
       </v-row>
     </v-col>
   </v-row>
@@ -163,27 +178,21 @@ export default {
     typeToLabel: {
       month: "Month",
       week: "Week",
-
     },
     selectedEvent: {},
     selectedElement: null,
     selectedOpen: false,
+    selectedElement_tarea: null,
+    selectedOpen_tarea: false,
     events: [],
-    colors: [
-      "blue",
-      "indigo",
-      "deep-purple",
-      "cyan",
-      "green",
-      "orange",
-    ],
+    colors: ["blue", "indigo", "deep-purple", "cyan", "green", "orange"],
     names: [
       ["Meeting", "August 17, 2021"],
       ["Holiday", "August 19, 2021"],
-      ["PTO", "'August 17, 2021'"],
-      ["Travel", "'August 22, 2021'"],
-      ["Event", "'August 26, 2021'"],
-      ["Birthday", "'August 25, 2021'"],
+      ["PTO", "August 17, 2021"],
+      ["Travel", "August 17, 2021"],
+      ["Event", "August 17, 2021"],
+      ["Birthday", "August 25, 2021"],
     ],
   }),
   mounted() {
@@ -240,7 +249,7 @@ export default {
           name: this.names[i][0],
           start: dia_entrega,
           color: this.colors[this.rnd(0, this.colors.length - 1)],
-          details: "helloooooo"
+          details: "helloooooo",
           // timed: !allDay,
         });
       }
