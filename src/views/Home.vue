@@ -2,11 +2,19 @@
   <v-row class="fill-height">
     <v-col>
       <v-row>
-        <v-sheet height="64" :width="$vuetify.breakpoint.smAndDown ? '100%' : '57%'"  :class="$vuetify.breakpoint.smAndDown ? 'mt-6 mx-4 pr-9': 'ml-12 mt-10 .rounded-lg'">
+        <v-sheet
+          height="64"
+          :width="$vuetify.breakpoint.smAndDown ? '100%' : '57%'"
+          :class="
+            $vuetify.breakpoint.smAndDown
+              ? 'mt-6 mx-4 pr-9'
+              : 'ml-12 mt-10 .rounded-lg'
+          "
+        >
           <v-toolbar color="cyan lighten-4" flat class="rounded-t-lg">
             <v-btn
               outlined
-              :class="$vuetify.breakpoint.smAndDown ? 'mx-auto' :' mr-4'"
+              :class="$vuetify.breakpoint.smAndDown ? 'mx-auto' : ' mr-4'"
               color="grey darken-2"
               @click="setToday"
             >
@@ -40,7 +48,11 @@
             </v-menu>
           </v-toolbar>
         </v-sheet>
-        <v-sheet :height="$vuetify.breakpoint.smAndDown ? '550' : '600'" :width="$vuetify.breakpoint.smAndDown ? '100%' : '57%'" :class="$vuetify.breakpoint.smAndDown ? 'mx-5' : 'ml-12'">
+        <v-sheet
+          :height="$vuetify.breakpoint.smAndDown ? '550' : '600'"
+          :width="$vuetify.breakpoint.smAndDown ? '100%' : '57%'"
+          :class="$vuetify.breakpoint.smAndDown ? 'mx-5' : 'ml-12'"
+        >
           <v-calendar
             ref="calendar"
             v-model="focus"
@@ -49,7 +61,7 @@
             :event-color="getEventColor"
             :type="type"
             @click:event="showEvent"
-           :event-more="false"
+            :event-more="false"
             @click:date="viewDay"
             @change="updateRange"
           ></v-calendar>
@@ -63,16 +75,12 @@
             <v-card color="grey lighten-4" min-width="350px">
               <v-toolbar :color="selectedEvent.color" dark>
                 <v-btn icon>
-                  <v-icon
-                    @click="(selectedOpen_tarea = true), (selectedOpen = false)"
+                  <v-icon @click="view_tarea(), (selectedOpen = false)"
                     >mdi-pencil</v-icon
                   >
                 </v-btn>
                 <v-toolbar-title v-html="selectedEvent.name"></v-toolbar-title>
                 <v-spacer></v-spacer>
-                <v-btn icon>
-                  <v-icon>mdi-dots-vertical</v-icon>
-                </v-btn>
               </v-toolbar>
               <v-card-text>
                 <p v-html="selectedEvent.details"></p>
@@ -88,8 +96,12 @@
 
         <v-card
           elevation="4"
-          :class="$vuetify.breakpoint.smAndDown ? 'mx-auto rounded-lg justify-center mt-5' : 'mx-auto rounded-lg justify-center'"
-          :width="$vuetify.breakpoint.smAndDown ? '90%' : '34%'" 
+          :class="
+            $vuetify.breakpoint.smAndDown
+              ? 'mx-auto rounded-lg justify-center mt-5'
+              : 'mx-auto rounded-lg justify-center'
+          "
+          :width="$vuetify.breakpoint.smAndDown ? '90%' : '34%'"
         >
           <v-card-title class="blue lighten-4 justify-center">
             <span class="text-h3 text-center"> Tareas </span>
@@ -100,6 +112,12 @@
               color="white"
               class="text--primary mt-10"
               fab
+              @click="
+                (tarea_date = null),
+                  (tarea_name = ''),
+                  (tarea_description = ''),
+                  (new_tarea = true)
+              "
             >
               <v-icon>mdi-plus</v-icon>
             </v-btn>
@@ -110,16 +128,19 @@
             <v-virtual-scroll
               :items="events"
               :item-height="50"
-              height="450"
+              :height="$vuetify.breakpoint.smAndDown ? '320' : '450'"
               max-width="550"
-              class="mx-auto"
+              class="mx-auto pb-8"
             >
               <template v-slot:default="{ item }">
-                <v-list-item
-                  @click="(selectedEvent = item), (selectedOpen_tarea = true)"
-                >
+                <v-list-item @click="(selectedEvent = item), view_tarea()">
                   <v-list-item-avatar>
-                    <v-avatar :color="item.color" size="56" class="white--text pr-4"> {{events.indexOf(item) + 1}}
+                    <v-avatar
+                      :color="item.color"
+                      size="56"
+                      class="white--text pr-4"
+                    >
+                      {{ events.indexOf(item) + 1 }}
                     </v-avatar>
                   </v-list-item-avatar>
 
@@ -134,33 +155,115 @@
               </template>
             </v-virtual-scroll>
           </v-card-actions>
-          <v-dialog v-model="selectedOpen_tarea" width="600">
-            <v-card color="grey lighten-4" min-width="350px">
+          <v-dialog v-model="selectedOpen_tarea" max-width="600">
+            <v-card color="grey lighten-4">
               <v-toolbar :color="selectedEvent.color" dark>
-                <v-btn icon>
-                  <v-icon>mdi-pencil</v-icon>
-                </v-btn>
-                <v-toolbar-title> {{ selectedEvent.name }}</v-toolbar-title>
+                <v-toolbar-title> {{ tarea_name }}</v-toolbar-title>
                 <v-spacer></v-spacer>
                 <v-btn icon>
                   <v-icon>mdi-dots-vertical</v-icon>
                 </v-btn>
               </v-toolbar>
-              <v-card-text>
-                <p class="mt-5">{{ selectedEvent.details }}</p>
-              </v-card-text>
-              <v-card-actions>
-                <v-btn
-                  text
-                  color="secondary"
-                  @click="selectedOpen_tarea = false"
+              <v-col md="10" class="mx-auto">
+                <v-text-field
+                  v-model="tarea_name"
+                  label="Name"
+                  solo
+                ></v-text-field>
+
+                <v-menu
+                  v-model="menu2"
+                  :close-on-content-click="false"
+                  :nudge-right="40"
+                  transition="scale-transition"
+                  offset-y
+                  min-width="auto"
                 >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field
+                      v-model="computedDateFormatted"
+                      label="Fecha de entrega"
+                      prepend-icon="mdi-calendar"
+                      readonly
+                      v-bind="attrs"
+                      v-on="on"
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    v-model="tarea_date"
+                    @input="menu2 = false"
+                  ></v-date-picker>
+                </v-menu>
+                <v-textarea
+                  v-model="tarea_description"
+                  :color="selectedEvent.color"
+                  label="Decription"
+                  required
+                  outlined
+                ></v-textarea>
+              </v-col>
+              <v-card-actions class="justify-center mt-n5">
+                <v-btn class="secondary" @click="selectedOpen_tarea = false">
                   Cancel
                 </v-btn>
+                <v-btn color="success" @click="update_tarea()"> Save </v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
         </v-card>
+        <v-dialog v-model="new_tarea" max-width="600">
+          <v-card color="grey lighten-4">
+            <v-toolbar color="blue-grey darken-2" dark >
+              <v-toolbar-title > Nueva Tarea</v-toolbar-title>
+              <v-spacer></v-spacer>
+              <v-btn icon >
+                <v-icon @click="new_tarea = false">mdi-close</v-icon>
+              </v-btn>
+            </v-toolbar>
+            <v-col md="10" class="mx-auto">
+              <v-text-field
+                v-model="tarea_name"
+                label="Name"
+                solo
+              ></v-text-field>
+
+              <v-menu
+                v-model="menu1"
+                :close-on-content-click="false"
+                :nudge-right="40"
+                transition="scale-transition"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    v-model="computedDateFormatted"
+                    label="Fecha de entrega"
+                    prepend-icon="mdi-calendar"
+                    readonly
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  v-model="tarea_date"
+                  @input="menu1 = false"
+                ></v-date-picker>
+              </v-menu>
+              <v-textarea
+                v-model="tarea_description"
+                :color="selectedEvent.color"
+                label="Decription"
+                required
+                outlined
+              ></v-textarea>
+            </v-col>
+            <v-card-actions class="justify-center mt-n5 pb-4">
+              
+              <v-btn color="success" @click="update_tarea()"> Agregar </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </v-row>
     </v-col>
   </v-row>
@@ -182,23 +285,58 @@ export default {
     selectedEvent: {},
     selectedElement: null,
     selectedOpen: false,
-    selectedElement_tarea: null,
+    new_tarea: false, 
+    tarea_name: "",
+    tarea_date: null,
+    tarea_dateFormatted: "",
+    tarea_description: "",
     selectedOpen_tarea: false,
+    menu2: false,
+    menu1: false,
     events: [],
     colors: ["blue", "indigo", "deep-purple", "cyan", "green", "orange"],
     names: [
-      ["Meeting", "August 17, 2021"],
-      ["Holiday", "August 19, 2021"],
-      ["PTO", "August 17, 2021"],
-      ["Travel", "August 17, 2021"],
-      ["Event", "August 17, 2021"],
-      ["Birthday", "August 25, 2021"],
+      ["Meeting", "August 17, 2021", "helooo"],
+      ["Holiday", "August 19, 2021", "helooo"],
+      ["PTO", "August 27, 2021", "helooo"],
+      ["Travel", "August 17, 2021", "helooo"],
+      ["Event", "August 17, 2021", "helooo"],
+      ["Birthday", "August 25, 2021", "helooo"],
     ],
   }),
+  computed: {
+    computedDateFormatted() {
+      return this.formatDate(this.tarea_date);
+    },
+  },
   mounted() {
     this.$refs.calendar.checkChange();
   },
   methods: {
+    formatDate(date) {
+      console.log(date);
+      if (!date) return null;
+      const [year, month, day] = date.split("-");
+      var check = `${month}/${day}/${year}`;
+      const dia = new Date(check);
+      return dia.toString().substring(0, 15);
+    },
+    update_tarea() {
+      console.log(typeof this.tarea_date);
+      this.selectedOpen_tarea = false;
+    },
+    view_tarea() {
+      this.tarea_name = this.selectedEvent.name;
+      this.tarea_description = this.selectedEvent.details;
+      var day = this.selectedEvent.start.getDate().toString();
+      var month = this.selectedEvent.start.getMonth() + 1;
+      month = month.toString();
+      var year = this.selectedEvent.start.getFullYear().toString();
+      var formatdate = `${year}-${month}-${day}`;
+
+      this.tarea_date = formatdate;
+      this.selectedOpen_tarea = true;
+    },
     viewDay({ date }) {
       this.focus = date;
       // que salgan las fechas en el v-sheet de a lado
@@ -249,8 +387,7 @@ export default {
           name: this.names[i][0],
           start: dia_entrega,
           color: this.colors[this.rnd(0, this.colors.length - 1)],
-          details: "helloooooo",
-          // timed: !allDay,
+          details: this.names[i][2],
         });
       }
 
