@@ -62,7 +62,6 @@
             :type="type"
             @click:event="showEvent"
             :event-more="false"
-            @click:date="viewDay"
             @change="updateRange"
           ></v-calendar>
 
@@ -161,7 +160,7 @@
                 <v-toolbar-title> {{ tarea_name }}</v-toolbar-title>
                 <v-spacer></v-spacer>
                 <v-btn icon>
-                  <v-icon>mdi-dots-vertical</v-icon>
+                  <v-icon @click="delete_dialog = true" >mdi-delete</v-icon>
                 </v-btn>
               </v-toolbar>
               <v-col md="10" class="mx-auto">
@@ -206,7 +205,7 @@
                 <v-btn class="secondary" @click="selectedOpen_tarea = false">
                   Cancel
                 </v-btn>
-                <v-btn color="success" @click="update_tarea()"> Save </v-btn>
+                <v-btn color="success" @click="update_tarea(selectedEvent.id)"> Save </v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
@@ -263,6 +262,21 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
+        <v-dialog v-model="delete_dialog" max-width="300">
+            <v-card color="grey lighten-4">
+              <v-toolbar color="error" dark class="justify-content text-center">
+              <v-spacer></v-spacer>
+                <v-toolbar-title > DELETE ?</v-toolbar-title>
+                <v-spacer></v-spacer>
+              </v-toolbar>
+              <v-card-actions class="justify-center mt-5">
+                <v-btn class="secondary" @click="delete_dialog = false">
+                  Cancel
+                </v-btn>
+                <v-btn color="error" @click="delete_tarea(selectedEvent.id)"> Delete </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
       </v-row>
     </v-col>
   </v-row>
@@ -286,6 +300,7 @@ export default {
     selectedElement: null,
     selectedOpen: false,
     new_tarea: false,
+    delete_dialog: false,
     tarea_name: "",
     tarea_date: null,
     tarea_dateFormatted: "",
@@ -296,13 +311,14 @@ export default {
     events: [],
     colors: ["blue", "indigo", "deep-purple", "cyan", "green", "orange"],
     names: [
-      ["Meeting", "August 18, 2021", "helooo"],
-      ["Holiday", "August 19, 2021", "helooo"],
-      ["PTO", "August 27, 2021", "helooo"],
-      ["Travel", "August 11, 2021", "helooo"],
-      ["Event", "August 5, 2021", "helooo"],
-      ["Birthday", "August 29, 2021", "helooo"],
-      ["Birthday", "May 29, 2021", "helooo"],
+      ["Meeting", "August 18, 2021", "helooo", "321"],
+      ["Holiday", "August 19, 2021", "helooo", "123"],
+      ["PTO", "August 27, 2021", "helooo", "45"],
+      ["Travel", "August 11, 2021", "helooo", "77"],
+      ["Event", "August 5, 2021", "helooo", "99"],
+      ["Birthday", "August 29, 2021", "helooo", '43'],
+      ["Birthday", "May 29, 2021", "helooo", '44'],
+      ["TEST", "2021-8-15", "helooo", '87'],
     ],
   }),
   computed: {
@@ -326,19 +342,25 @@ export default {
       })
         .then(function (response) {
           console.log(response);
+          for (let i = 0; i < response.data.length; i++) {
+           names.push([
+             response.data[i].title, response.data[i].date, response.data[i].description, response.data[i].id
+           ])
+          }
         })
         .catch(function (error) {
           console.log(error);
         });
     },
     create_tarea() {
+      var vueinstance = this
       axios({
         method: "post",
         url: "http://127.0.0.1:8000/homeworks/",
         data: {
-          title: "Test post",
-          date: "looool",
-          description: "hellooo its meeeeee",
+          title: this.tarea_name,
+          date: this.tarea_date,
+          description: this.tarea_description,
         },
         auth: {
           username: "admin",
@@ -347,6 +369,7 @@ export default {
       })
         .then(function (response) {
           console.log("worked");
+          vueinstance.new_tarea = false
         })
         .catch(function (error) {
           console.log(error);
@@ -360,16 +383,16 @@ export default {
       const dia = new Date(check);
       return dia.toString().substring(0, 15);
     },
-    update_tarea() {
-      console.log(typeof this.tarea_date);
-      this.selectedOpen_tarea = false;
+    update_tarea(id) {
+      console.log(id)
+      var vueinstance = this
       axios({
         method: "patch",
-        url: "http://127.0.0.1:8000/homeworks/" + "3/",
+        url: "http://127.0.0.1:8000/homeworks/" + id + "/",
         data: {
-          title: "CHANGED",
-          date: "UPDATED MY G",
-          description: "hellooo its meeeeee222",
+          title: this.tarea_name,
+          date: this.tarea_date,
+          description: this.tarea_description,
         },
         auth: {
           username: "admin",
@@ -378,6 +401,26 @@ export default {
       })
         .then(function (response) {
           console.log("worked");
+          vueinstance.selectedOpen_tarea = false;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    delete_tarea(id) {
+      console.log(id)
+      var vueinstance = this
+      axios({
+        method: "delete",
+        url: "http://127.0.0.1:8000/homeworks/" + id + "/",
+        auth: {
+          username: "admin",
+          password: "Thebahamas1",
+        },
+      })
+        .then(function (response) {
+          vueinstance.delete_dialog = false;
+          vueinstance.selectedOpen_tarea = false;
         })
         .catch(function (error) {
           console.log(error);
@@ -391,13 +434,8 @@ export default {
       month = month.toString();
       var year = this.selectedEvent.start.getFullYear().toString();
       var formatdate = `${year}-${month}-${day}`;
-
       this.tarea_date = formatdate;
       this.selectedOpen_tarea = true;
-    },
-    viewDay({ date }) {
-      this.focus = date;
-      // que salgan las fechas en el v-sheet de a lado
     },
     getEventColor(event) {
       return event.color;
@@ -451,6 +489,7 @@ export default {
           start: dia_entrega,
           color: this.colors[this.rnd(0, this.colors.length - 1)],
           details: this.names[i][2],
+          id: this.names[i][3],
         });
       }
 
