@@ -8,7 +8,7 @@
       </div>
 
       <v-spacer></v-spacer>
-
+      <a href=" ">
       <v-img
           alt="Vuetify Logo"
           class="shrink mr-3"
@@ -16,7 +16,9 @@
           src="../src/assets/tec.png"
           transition="scale-transition"
           width="140"
+          
         />
+        </a>
     </v-app-bar>
 
     <v-main>
