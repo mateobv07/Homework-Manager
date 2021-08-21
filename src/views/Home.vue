@@ -259,7 +259,7 @@
               ></v-textarea>
             </v-col>
             <v-card-actions class="justify-center mt-n5 pb-4">
-              <v-btn color="success" @click="update_tarea()"> Agregar </v-btn>
+              <v-btn color="success" @click="create_tarea()"> Agregar </v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -270,6 +270,7 @@
 
 <script>
 /* eslint-disable */
+import axios from "axios";
 export default {
   name: "Home",
 
@@ -310,9 +311,47 @@ export default {
     },
   },
   mounted() {
+    this.get_all_homework();
     this.$refs.calendar.checkChange();
   },
   methods: {
+    get_all_homework() {
+      axios({
+        method: "get",
+        url: "http://127.0.0.1:8000/homeworks/",
+        auth: {
+          username: "admin",
+          password: "Thebahamas1",
+        },
+      })
+        .then(function (response) {
+          console.log(response);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    create_tarea() {
+      axios({
+        method: "post",
+        url: "http://127.0.0.1:8000/homeworks/",
+        data: {
+          title: "Test post",
+          date: "looool",
+          description: "hellooo its meeeeee",
+        },
+        auth: {
+          username: "admin",
+          password: "Thebahamas1",
+        },
+      })
+        .then(function (response) {
+          console.log("worked");
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
     formatDate(date) {
       console.log(date);
       if (!date) return null;
@@ -324,6 +363,25 @@ export default {
     update_tarea() {
       console.log(typeof this.tarea_date);
       this.selectedOpen_tarea = false;
+      axios({
+        method: "patch",
+        url: "http://127.0.0.1:8000/homeworks/" + "3/",
+        data: {
+          title: "CHANGED",
+          date: "UPDATED MY G",
+          description: "hellooo its meeeeee222",
+        },
+        auth: {
+          username: "admin",
+          password: "Thebahamas1",
+        },
+      })
+        .then(function (response) {
+          console.log("worked");
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
     },
     view_tarea() {
       this.tarea_name = this.selectedEvent.name;
