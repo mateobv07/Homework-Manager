@@ -110,12 +110,7 @@
               color="white"
               class="text--primary mt-10"
               fab
-              @click="
-                (tarea_date = null),
-                  (tarea_name = ''),
-                  (tarea_description = ''),
-                  (new_tarea = true)
-              "
+              @click="new_tarea_view"
             >
               <v-icon>mdi-plus</v-icon>
             </v-btn>
@@ -124,7 +119,7 @@
           <v-divider></v-divider>
           <v-card-actions>
             <v-virtual-scroll
-              :items="events"
+              :items="pending_tarea"
               :item-height="50"
               :height="$vuetify.breakpoint.smAndDown ? '320' : '450'"
               max-width="550"
@@ -138,7 +133,7 @@
                       size="56"
                       class="white--text pr-4"
                     >
-                      {{ events.indexOf(item) + 1 }}
+                      {{ pending_tarea.indexOf(item) + 1 }}
                     </v-avatar>
                   </v-list-item-avatar>
 
@@ -204,7 +199,10 @@
                 <v-btn class="secondary" @click="selectedOpen_tarea = false">
                   Cancel
                 </v-btn>
-                <v-btn color="success" @click="update_tarea(selectedEvent.id)">
+                <v-btn
+                  color="success"
+                  @click="update_tarea(selectedEvent.id)"
+                >
                   Save
                 </v-btn>
               </v-card-actions>
@@ -220,47 +218,60 @@
                 <v-icon @click="new_tarea = false">mdi-close</v-icon>
               </v-btn>
             </v-toolbar>
-            <v-col md="10" class="mx-auto">
-              <v-text-field
-                v-model="tarea_name"
-                label="Name"
-                solo
-              ></v-text-field>
+            <v-form ref="form" v-model="valid">
+              <v-col md="10" class="mx-auto">
+                <v-text-field
+                  v-model="tarea_name"
+                  label="Name"
+                  solo
+                  :rules="rules"
+                  required
+                ></v-text-field>
 
-              <v-menu
-                v-model="menu1"
-                :close-on-content-click="false"
-                :nudge-right="40"
-                transition="scale-transition"
-                offset-y
-                min-width="auto"
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field
-                    v-model="computedDateFormatted"
-                    label="Fecha de entrega"
-                    prepend-icon="mdi-calendar"
-                    readonly
-                    v-bind="attrs"
-                    v-on="on"
-                  ></v-text-field>
-                </template>
-                <v-date-picker
-                  v-model="tarea_date"
-                  @input="menu1 = false"
-                ></v-date-picker>
-              </v-menu>
-              <v-textarea
-                v-model="tarea_description"
-                :color="selectedEvent.color"
-                label="Decription"
-                required
-                outlined
-              ></v-textarea>
-            </v-col>
-            <v-card-actions class="justify-center mt-n5 pb-4">
-              <v-btn color="success" @click="create_tarea()"> Agregar </v-btn>
-            </v-card-actions>
+                <v-menu
+                  v-model="menu1"
+                  :close-on-content-click="false"
+                  :nudge-right="40"
+                  transition="scale-transition"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field
+                      v-model="computedDateFormatted"
+                      required
+                      :rules="rules"
+                      label="Fecha de entrega"
+                      prepend-icon="mdi-calendar"
+                      readonly
+                      v-bind="attrs"
+                      v-on="on"
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    v-model="tarea_date"
+                    @input="menu1 = false"
+                  ></v-date-picker>
+                </v-menu>
+                <v-textarea
+                  v-model="tarea_description"
+                  :rules="rules"
+                  :color="selectedEvent.color"
+                  label="Decription"
+                  required
+                  outlined
+                ></v-textarea>
+              </v-col>
+              <v-card-actions class="justify-center mt-n5 pb-4">
+                <v-btn
+                  :disabled="!valid"
+                  color="success"
+                  @click="create_tarea()"
+                >
+                  Agregar
+                </v-btn>
+              </v-card-actions>
+            </v-form>
           </v-card>
         </v-dialog>
         <v-dialog v-model="delete_dialog" max-width="300">
@@ -270,6 +281,7 @@
               <v-toolbar-title> DELETE ?</v-toolbar-title>
               <v-spacer></v-spacer>
             </v-toolbar>
+
             <v-card-actions class="justify-center mt-5">
               <v-btn class="secondary" @click="delete_dialog = false">
                 Cancel
@@ -306,8 +318,10 @@ export default {
     delete_dialog: false,
     tarea_name: "",
     tarea_date: null,
+    valid: true,
     tarea_dateFormatted: "",
     tarea_description: "",
+    rules: [(v) => !!v || "field is required"],
     selectedOpen_tarea: false,
     menu2: false,
     menu1: false,
@@ -319,6 +333,16 @@ export default {
     computedDateFormatted() {
       return this.formatDate(this.tarea_date);
     },
+    pending_tarea() {
+      var today = new Date();
+      const pending_events = [];
+      for (let i = 0; i < this.events.length; i++) {
+        if (this.events[i].start >= today) {
+          pending_events.push(this.events[i]);
+        }
+      }
+      return pending_events;
+    },
   },
   mounted() {
     this.get_all_homework();
@@ -328,7 +352,7 @@ export default {
       var vueinstance = this;
       axios({
         method: "get",
-        url: "http://127.0.0.1:8000/homeworks/",
+        url: "https://mateohomework.pythonanywhere.com/homeworks/",
         auth: {
           username: "admin",
           password: "Thebahamas1",
@@ -347,17 +371,20 @@ export default {
           console.log(vueinstance.names);
           console.log("thiiiis");
           vueinstance.updateRangeload();
-          vueinstance.$refs.calendar.checkChange();
         })
         .catch(function (error) {
           console.log(error);
         });
     },
+    new_tarea_view() {
+      this.new_tarea = true;
+      this.$refs.form.reset();
+    },
     create_tarea() {
       var vueinstance = this;
       axios({
         method: "post",
-        url: "http://127.0.0.1:8000/homeworks/",
+        url: "https://mateohomework.pythonanywhere.com/homeworks/",
         data: {
           title: this.tarea_name,
           date: this.tarea_date,
@@ -371,6 +398,7 @@ export default {
         .then(function (response) {
           console.log("worked");
           vueinstance.get_all_homework();
+          vueinstance.$refs.form.reset();
           vueinstance.new_tarea = false;
         })
         .catch(function (error) {
@@ -390,7 +418,7 @@ export default {
       var vueinstance = this;
       axios({
         method: "patch",
-        url: "http://127.0.0.1:8000/homeworks/" + id + "/",
+        url: "https://mateohomework.pythonanywhere.com/homeworks/" + id + "/",
         data: {
           title: this.tarea_name,
           date: this.tarea_date,
@@ -422,7 +450,7 @@ export default {
       var vueinstance = this;
       axios({
         method: "delete",
-        url: "http://127.0.0.1:8000/homeworks/" + id + "/",
+        url: "https://mateohomework.pythonanywhere.com/homeworks/" + id + "/",
         auth: {
           username: "admin",
           password: "Thebahamas1",
@@ -455,6 +483,7 @@ export default {
         var formatdate = `${year}-${month.toString()}-${day}`;
       }
       console.log(formatdate);
+
       this.tarea_date = formatdate;
       this.selectedOpen_tarea = true;
     },
