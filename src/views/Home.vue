@@ -62,7 +62,6 @@
             :type="type"
             @click:event="showEvent"
             :event-more="false"
-            @change="updateRange"
           ></v-calendar>
 
           <v-menu
@@ -160,7 +159,7 @@
                 <v-toolbar-title> {{ tarea_name }}</v-toolbar-title>
                 <v-spacer></v-spacer>
                 <v-btn icon>
-                  <v-icon @click="delete_dialog = true" >mdi-delete</v-icon>
+                  <v-icon @click="delete_dialog = true">mdi-delete</v-icon>
                 </v-btn>
               </v-toolbar>
               <v-col md="10" class="mx-auto">
@@ -205,7 +204,9 @@
                 <v-btn class="secondary" @click="selectedOpen_tarea = false">
                   Cancel
                 </v-btn>
-                <v-btn color="success" @click="update_tarea(selectedEvent.id)"> Save </v-btn>
+                <v-btn color="success" @click="update_tarea(selectedEvent.id)">
+                  Save
+                </v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
@@ -263,20 +264,22 @@
           </v-card>
         </v-dialog>
         <v-dialog v-model="delete_dialog" max-width="300">
-            <v-card color="grey lighten-4">
-              <v-toolbar color="error" dark class="justify-content text-center">
+          <v-card color="grey lighten-4">
+            <v-toolbar color="error" dark class="justify-content text-center">
               <v-spacer></v-spacer>
-                <v-toolbar-title > DELETE ?</v-toolbar-title>
-                <v-spacer></v-spacer>
-              </v-toolbar>
-              <v-card-actions class="justify-center mt-5">
-                <v-btn class="secondary" @click="delete_dialog = false">
-                  Cancel
-                </v-btn>
-                <v-btn color="error" @click="delete_tarea(selectedEvent.id)"> Delete </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
+              <v-toolbar-title> DELETE ?</v-toolbar-title>
+              <v-spacer></v-spacer>
+            </v-toolbar>
+            <v-card-actions class="justify-center mt-5">
+              <v-btn class="secondary" @click="delete_dialog = false">
+                Cancel
+              </v-btn>
+              <v-btn color="error" @click="delete_tarea(selectedEvent.id)">
+                Delete
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </v-row>
     </v-col>
   </v-row>
@@ -310,16 +313,7 @@ export default {
     menu1: false,
     events: [],
     colors: ["blue", "indigo", "deep-purple", "cyan", "green", "orange"],
-    names: [
-      ["Meeting", "August 18, 2021", "helooo", "321"],
-      ["Holiday", "August 19, 2021", "helooo", "123"],
-      ["PTO", "August 27, 2021", "helooo", "45"],
-      ["Travel", "August 11, 2021", "helooo", "77"],
-      ["Event", "August 5, 2021", "helooo", "99"],
-      ["Birthday", "August 29, 2021", "helooo", '43'],
-      ["Birthday", "May 29, 2021", "helooo", '44'],
-      ["TEST", "2021-8-15", "helooo", '87'],
-    ],
+    names: [],
   }),
   computed: {
     computedDateFormatted() {
@@ -328,10 +322,10 @@ export default {
   },
   mounted() {
     this.get_all_homework();
-    this.$refs.calendar.checkChange();
   },
   methods: {
     get_all_homework() {
+      var vueinstance = this;
       axios({
         method: "get",
         url: "http://127.0.0.1:8000/homeworks/",
@@ -341,19 +335,26 @@ export default {
         },
       })
         .then(function (response) {
-          console.log(response);
+          vueinstance.names = [];
           for (let i = 0; i < response.data.length; i++) {
-           names.push([
-             response.data[i].title, response.data[i].date, response.data[i].description, response.data[i].id
-           ])
+            vueinstance.names.push([
+              response.data[i].title,
+              response.data[i].date,
+              response.data[i].description,
+              response.data[i].id.toString(),
+            ]);
           }
+          console.log(vueinstance.names);
+          console.log("thiiiis");
+          vueinstance.updateRangeload();
+          vueinstance.$refs.calendar.checkChange();
         })
         .catch(function (error) {
           console.log(error);
         });
     },
     create_tarea() {
-      var vueinstance = this
+      var vueinstance = this;
       axios({
         method: "post",
         url: "http://127.0.0.1:8000/homeworks/",
@@ -369,7 +370,8 @@ export default {
       })
         .then(function (response) {
           console.log("worked");
-          vueinstance.new_tarea = false
+          vueinstance.get_all_homework();
+          vueinstance.new_tarea = false;
         })
         .catch(function (error) {
           console.log(error);
@@ -384,8 +386,8 @@ export default {
       return dia.toString().substring(0, 15);
     },
     update_tarea(id) {
-      console.log(id)
-      var vueinstance = this
+      console.log(id);
+      var vueinstance = this;
       axios({
         method: "patch",
         url: "http://127.0.0.1:8000/homeworks/" + id + "/",
@@ -402,14 +404,22 @@ export default {
         .then(function (response) {
           console.log("worked");
           vueinstance.selectedOpen_tarea = false;
+          for (let i = 0; i < vueinstance.names.length; i++) {
+            if (vueinstance.names[i][3] == id) {
+              vueinstance.names[i][0] = vueinstance.tarea_name;
+              vueinstance.names[i][1] = vueinstance.tarea_date;
+              vueinstance.names[i][2] = vueinstance.tarea_description;
+              vueinstance.updateRangeload();
+            }
+          }
         })
         .catch(function (error) {
           console.log(error);
         });
     },
     delete_tarea(id) {
-      console.log(id)
-      var vueinstance = this
+      console.log(id);
+      var vueinstance = this;
       axios({
         method: "delete",
         url: "http://127.0.0.1:8000/homeworks/" + id + "/",
@@ -421,6 +431,12 @@ export default {
         .then(function (response) {
           vueinstance.delete_dialog = false;
           vueinstance.selectedOpen_tarea = false;
+          for (let i = 0; i < vueinstance.names.length; i++) {
+            if (vueinstance.names[i][3] == id) {
+              vueinstance.names.splice(i, 1);
+              vueinstance.updateRangeload();
+            }
+          }
         })
         .catch(function (error) {
           console.log(error);
@@ -431,9 +447,14 @@ export default {
       this.tarea_description = this.selectedEvent.details;
       var day = this.selectedEvent.start.getDate().toString();
       var month = this.selectedEvent.start.getMonth() + 1;
-      month = month.toString();
       var year = this.selectedEvent.start.getFullYear().toString();
-      var formatdate = `${year}-${month}-${day}`;
+      console.log();
+      if (month < 10) {
+        var formatdate = `${year}-0${month.toString()}-${day}`;
+      } else {
+        var formatdate = `${year}-${month.toString()}-${day}`;
+      }
+      console.log(formatdate);
       this.tarea_date = formatdate;
       this.selectedOpen_tarea = true;
     },
@@ -467,9 +488,11 @@ export default {
 
       nativeEvent.stopPropagation();
     },
-    updateRange({ start, end }) {
+
+    updateRangeload() {
       //sort by date
       const events = [];
+
       var lol = this.names.sort(function (a, b) {
         var dateA = new Date(a[1]),
           dateB = new Date(b[1]);
@@ -480,10 +503,13 @@ export default {
 
       for (let i = 0; i < eventCount; i++) {
         const firstTimestamp = new Date(this.names[i][1]);
-        const dia_entrega = new Date(
-          firstTimestamp - (firstTimestamp % 900000)
+        const date_format = firstTimestamp.setDate(
+          firstTimestamp.getDate() + 1
         );
-
+        const dia_entrega = new Date(date_format);
+        console.log(firstTimestamp);
+        console.log(dia_entrega);
+        console.log("dates");
         events.push({
           name: this.names[i][0],
           start: dia_entrega,
@@ -492,7 +518,7 @@ export default {
           id: this.names[i][3],
         });
       }
-
+      console.log(events);
       this.events = events;
     },
     rnd(a, b) {
