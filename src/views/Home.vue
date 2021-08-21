@@ -7,11 +7,11 @@
           :width="$vuetify.breakpoint.smAndDown ? '100%' : '57%'"
           :class="
             $vuetify.breakpoint.smAndDown
-              ? 'mt-6 mx-4 pr-9'
+              ? 'mt-6  px-4 mx-auto mb-n2'
               : 'ml-12 mt-10 .rounded-lg'
           "
         >
-          <v-toolbar color="cyan lighten-4" flat class="rounded-t-lg">
+          <v-toolbar color="cyan lighten-4" flat  :class="$vuetify.breakpoint.smAndDown ? ' rounded-t-lg' : 'rounded-t-lg'">
             <v-btn
               outlined
               :class="$vuetify.breakpoint.smAndDown ? 'mx-auto' : ' mr-4'"
@@ -119,11 +119,12 @@
           <v-divider></v-divider>
           <v-card-actions>
             <v-virtual-scroll
+              bench="5"
               :items="pending_tarea"
               :item-height="50"
               :height="$vuetify.breakpoint.smAndDown ? '320' : '450'"
               max-width="550"
-              class="mx-auto pb-8"
+              class="mx-auto "
             >
               <template v-slot:default="{ item }">
                 <v-list-item @click="(selectedEvent = item), view_tarea()">
@@ -344,8 +345,12 @@ export default {
       return pending_events;
     },
   },
+  created(){
+    this.interval = setInterval(() => this.get_all_homework(), 60000);
+  },
   mounted() {
     this.get_all_homework();
+
   },
   methods: {
     get_all_homework() {
@@ -536,9 +541,7 @@ export default {
           firstTimestamp.getDate() + 1
         );
         const dia_entrega = new Date(date_format);
-        console.log(firstTimestamp);
-        console.log(dia_entrega);
-        console.log("dates");
+
         events.push({
           name: this.names[i][0],
           start: dia_entrega,
