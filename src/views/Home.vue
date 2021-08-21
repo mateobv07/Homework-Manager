@@ -70,7 +70,7 @@
             :activator="selectedElement"
             offset-x
           >
-            <v-card color="grey lighten-4" min-width="350px">
+            <v-card color="grey lighten-4" width="350px">
               <v-toolbar :color="selectedEvent.color" dark>
                 <v-btn icon>
                   <v-icon @click="view_tarea(), (selectedOpen = false)"
@@ -80,8 +80,8 @@
                 <v-toolbar-title v-html="selectedEvent.name"></v-toolbar-title>
                 <v-spacer></v-spacer>
               </v-toolbar>
-              <v-card-text>
-                <p v-html="selectedEvent.details"></p>
+              <v-card-text >
+                <p > {{selectedEvent.details}}</p>
               </v-card-text>
               <v-card-actions>
                 <v-btn text color="secondary" @click="selectedOpen = false">
